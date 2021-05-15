@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-class Main {    
+class Rename {    
     public static void main(String[] args)
     {
 
