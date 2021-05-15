@@ -116,7 +116,7 @@ class Main {
                         String new_file_name = file_name.replace(args[k + 1], args[k + 2]);
                         file_rename.set(y, new_file_name);
                     }
-                k = k + 3;
+                k = k + 2;
                 }else{
                     System.out.println("Incorrect usage of Rename Utility: -(r|rename) requires two values [str1] [str2]");
                     System.out.println("Run command -(h|help) for usage of Rename Utility");
@@ -127,7 +127,7 @@ class Main {
         }
         //4. Replace file name
         for (int a=0; a < file_objects.size(); a++){
-            String newFileName = file_objects.get(a).getParent() == null ? file_rename.get(a) : file_objects.get(a).getParent() + "\" + file_rename.get(a);
+            String newFileName = file_objects.get(a).getParent() == null ? file_rename.get(a) : file_objects.get(a).getParent() + "\\" + file_rename.get(a);
             File rename = new File(newFileName);
             if (file_objects.get(a).renameTo(rename)){
                 System.out.println("File Successfully Renamed: from " + file_orignal.get(a) + " to " + newFileName);
