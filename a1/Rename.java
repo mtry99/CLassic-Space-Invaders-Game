@@ -110,6 +110,13 @@ class Rename {
                     k++;
                }
             }else if(args[k].equals("-r") || args[k].equals("-rename")){
+                
+                if (k + 3 < args.length && !(flags.contains(args[k + 3]))){
+                    System.out.println("Incorrect usage of Rename Utility: -(r|rename) requires two values [str1] [str2]");
+                    System.out.println("Run command -(h|help) for usage of Rename Utility");
+                    System.exit(0);
+                }
+
                 if (k + 2 < args.length && !(flags.contains(args[k + 1])) && !(flags.contains(args[k + 2]))){
                     for(int y=0; y < file_rename.size(); y++){
                         String file_name = file_rename.get(y);

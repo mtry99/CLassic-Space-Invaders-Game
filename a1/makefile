@@ -11,6 +11,8 @@ MAIN=Rename
 
 default: classes
 
+build: $(CLASSES:.java=.class)
+
 classes: $(CLASSES:.java=.class)
 
 run: $(MAIN).class
