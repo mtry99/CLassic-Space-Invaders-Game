@@ -10,7 +10,7 @@ class Rename {
 
         List<String> flags = Arrays.asList("-file", "-f", "-p", "-prefix", "-s", "-suffix", "-r", "-replace", "-h", "-help");
         LocalDateTime ldt = LocalDateTime.now();
-        String date = DateTimeFormatter.ofPattern("MM-dd-yy").format(ldt);
+        String date = DateTimeFormatter.ofPattern("MM-dd-yyyy").format(ldt);
         String time = DateTimeFormatter.ofPattern("HH-mm-ss").format(ldt);
 
        //1. Check for -h|help command 
@@ -68,19 +68,23 @@ class Rename {
                     System.out.println("Run command -(h|help) for usage of Rename Utility");
                     System.exit(0);
                 }
-                String prefix = "";
+                
                 while ((k + 1 < args.length) && !(flags.contains(args[k + 1]))){
-                    if (args[k + 1].equals("@date")){  
-                        prefix += date;     
+                    if (args[k + 1].equals("@date")){ 
+                        for(int y=0; y < file_rename.size(); y++){
+                            file_rename.set(y, date + file_rename.get(y));
+                        } 
+                    
                     }else if (args[k + 1].equals("@time")){
-                        prefix += time;
+                        for (int y=0; y < file_rename.size(); y++){
+                            file_rename.set(y, time + file_rename.get(y));
+                        }
                     }else{
-                        prefix += args[k + 1];
+                        for(int y=0; y < file_rename.size(); y++){
+                            file_rename.set(y,  args[k + 1] + file_rename.get(y));
+                        }
                     }    
                     k++;
-                }
-                for (int y=0; y < file_rename.size(); y++){
-                    file_rename.set(y, prefix + file_rename.get(y));
                 }
               
             }else if(args[k].equals("-s") || args[k].equals("-suffix")){
