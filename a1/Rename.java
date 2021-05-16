@@ -134,7 +134,7 @@ class Rename {
             String newFileName = file_objects.get(a).getParent() == null ? file_rename.get(a) : file_objects.get(a).getParent() + "\\" + file_rename.get(a);
             File rename = new File(newFileName);
             if (file_objects.get(a).renameTo(rename)){
-                System.out.println("File Successfully Renamed: from \"" + file_orignal.get(a) + "\" to \"" + newFileName + "\"");
+                System.out.println("File Successfully Renamed: from \"" + file_orignal.get(a) + "\" to \"" + newFileName.replace("\\", "/") + "\"");
             }else {
                 System.out.println("Operation Failed: Invalid FileName \"" + file_orignal.get(a) + "\". This file does not exist.");
             }
