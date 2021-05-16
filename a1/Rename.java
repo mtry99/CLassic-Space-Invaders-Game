@@ -16,8 +16,8 @@ class Rename {
        //1. Check for -h|help command 
        for (int j=0; j < args.length; j++){
            if (args[j].equals("-h") || args[j].equals("-help")){
-                System.out.println("(c) 2021 Maitry Mistry. Revised: May 20, 2021");
-                System.out.println("Usage: rename [-option argument1 argument2 ...]");
+                System.out.println("(c) 2021 Maitry Mistry. Revised: June 4, 2021");
+                System.out.println("Usage: ./rename [-option argument1 argument2 ...]");
                 System.out.println();
                 System.out.println("-f|file [filename]          :: file(s) to change.");
                 System.out.println("-p|prefix [string]          :: rename [filename] so that it starts with [string].");
@@ -68,23 +68,20 @@ class Rename {
                     System.out.println("Run command -(h|help) for usage of Rename Utility");
                     System.exit(0);
                 }
-
+                String prefix = "";
                 while ((k + 1 < args.length) && !(flags.contains(args[k + 1]))){
-                    if (args[k + 1].equals("@date")){       
-                        for(int y=0; y < file_rename.size(); y++){
-                            file_rename.set(y, date + file_rename.get(y));
-                        }
+                    if (args[k + 1].equals("@date")){  
+                        prefix += date;     
                     }else if (args[k + 1].equals("@time")){
-                        for(int y=0; y < file_rename.size(); y++){
-                            file_rename.set(y, time + file_rename.get(y));
-                        }
+                        prefix += time;
                     }else{
-                        for(int y=0; y < file_rename.size(); y++){
-                            file_rename.set(y, args[k + 1] + file_rename.get(y));
-                        }
+                        prefix += args[k + 1];
                     }    
                     k++;
-               }
+                }
+                for (int y=0; y < file_rename.size(); y++){
+                    file_rename.set(y, prefix + file_rename.get(y));
+                }
               
             }else if(args[k].equals("-s") || args[k].equals("-suffix")){
                 if (k + 1 == args.length ||  ((k + 1 < args.length) && flags.contains(args[k + 1]))){
@@ -109,7 +106,7 @@ class Rename {
                     }    
                     k++;
                }
-            }else if(args[k].equals("-r") || args[k].equals("-rename")){
+            }else if(args[k].equals("-r") || args[k].equals("-replace")){
                 
                 if (k + 3 < args.length && !(flags.contains(args[k + 3]))){
                     System.out.println("Incorrect usage of Rename Utility: -(r|rename) requires two values [str1] [str2]");
@@ -137,9 +134,9 @@ class Rename {
             String newFileName = file_objects.get(a).getParent() == null ? file_rename.get(a) : file_objects.get(a).getParent() + "\\" + file_rename.get(a);
             File rename = new File(newFileName);
             if (file_objects.get(a).renameTo(rename)){
-                System.out.println("File Successfully Renamed: from " + file_orignal.get(a) + " to " + newFileName);
+                System.out.println("File Successfully Renamed: from \"" + file_orignal.get(a) + "\" to \"" + newFileName + "\"");
             }else {
-                System.out.println("Operation Failed: Invalid FileName- " + file_orignal.get(a));
+                System.out.println("Operation Failed: Invalid FileName \"" + file_orignal.get(a) + "\". This file does not exist.");
             }
         }
     }

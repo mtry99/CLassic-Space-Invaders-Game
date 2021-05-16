@@ -11,6 +11,6 @@ Windows 10 (YOGA 920-13IKB)
     2. Run command `make build` in a1 folder
 
 2. Running Rename Utility Program  
-   Run script: `.\rename [-option argument1 argument2....]` in a1 folder  
-   *For Example:* `.\rename -f helloworld -p oh -s no`   
+   Run script: `./rename [-option argument1 argument2....]` in a1 folder  
+   *For Example:* `./rename -f helloworld -p oh -s no`   
   
