@@ -13,8 +13,25 @@ class Rename {
         String date = DateTimeFormatter.ofPattern("MM-dd-yyyy").format(ldt);
         String time = DateTimeFormatter.ofPattern("HH-mm-ss").format(ldt);
 
+        int file_flags = 0;
+        int prefix_flags = 0;
+        int suffix_flags = 0;
+        int replace_flags = 0;
        //1. Check for -h|help command 
        for (int j=0; j < args.length; j++){
+           if (args[j].equals("-file") || args[j].equals("-f")){
+               file_flags++;
+           }
+           if (args[j].equals("-prefix") || args[j].equals("-p")){
+                prefix_flags++;
+            }
+            if (args[j].equals("-suffix") || args[j].equals("-s")){
+                suffix_flags++;
+            }
+            if (args[j].equals("-replace") || args[j].equals("-r")){
+                replace_flags++;
+            }
+
            if (args[j].equals("-h") || args[j].equals("-help")){
                 System.out.println("(c) 2021 Maitry Mistry. Revised: June 4, 2021");
                 System.out.println("Usage: ./rename [-option argument1 argument2 ...]");
@@ -27,7 +44,31 @@ class Rename {
                 System.exit(0);
            }
        }
+
+       if (file_flags > 1){
+        System.out.println("Incorrect usage of Rename Utility: Cannot specify file flag (-f|file) more than once.");
+        System.out.println("Run command -(h|help) for usage of Rename Utility");
+        System.exit(0);
+       }
+       if (prefix_flags > 1){
+        System.out.println("Incorrect usage of Rename Utility: Cannot specify prefix flag (-p|prefix) more than once.");
+        System.out.println("Run command -(h|help) for usage of Rename Utility");
+        System.exit(0);
+       }
+       if (suffix_flags > 1){
+        System.out.println("Incorrect usage of Rename Utility: Cannot specify suffix flag (-s|suffix) more than once.");
+        System.out.println("Run command -(h|help) for usage of Rename Utility");
+        System.exit(0);
+       }
+       if (replace_flags > 1){
+        System.out.println("Incorrect usage of Rename Utility: Cannot specify replace flag (-r|replace) more than once.");
+        System.out.println("Run command -(h|help) for usage of Rename Utility");
+        System.exit(0);
+       }
        
+
+
+
        //2. Get File names
         List<File> file_objects = new ArrayList<>();
         List<String> file_orignal = new ArrayList<>();
