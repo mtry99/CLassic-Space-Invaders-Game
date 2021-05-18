@@ -19,10 +19,10 @@ class Rename {
         int replace_flags = 0;
        //1. Check for -h|help command 
        for (int j=0; j < args.length; j++){
-           if (args[j].equals("-file") || args[j].equals("-f")){
-               file_flags++;
-           }
-           if (args[j].equals("-prefix") || args[j].equals("-p")){
+            if (args[j].equals("-file") || args[j].equals("-f")){
+                file_flags++;
+            }
+            if (args[j].equals("-prefix") || args[j].equals("-p")){
                 prefix_flags++;
             }
             if (args[j].equals("-suffix") || args[j].equals("-s")){
@@ -32,7 +32,7 @@ class Rename {
                 replace_flags++;
             }
 
-           if (args[j].equals("-h") || args[j].equals("-help")){
+            if (args[j].equals("-h") || args[j].equals("-help")){
                 System.out.println("(c) 2021 Maitry Mistry. Revised: June 4, 2021");
                 System.out.println("Usage: ./rename [-option argument1 argument2 ...]");
                 System.out.println();
@@ -65,6 +65,12 @@ class Rename {
         System.out.println("Run command -(h|help) for usage of Rename Utility");
         System.exit(0);
        }
+
+       if (replace_flags < 1 && prefix_flags < 1 && suffix_flags < 1){
+        System.out.println("Incorrect usage of Rename Utility: No flags provided for renaming.");
+        System.out.println("Run command -(h|help) for usage of Rename Utility");
+        System.exit(0);
+       }
        
 
 
@@ -89,9 +95,14 @@ class Rename {
                     file_rename.add(file.getName());
                     i++;
                 }
-            }else{
-                i++;
+            }else if (args[i].startsWith("-") && !(flags.contains(args[i]))){
+                System.out.println("Incorrect usage of Rename Utility: Invalid flag provided.");
+                System.out.println("Run command -(h|help) for usage of Rename Utility");
+                System.exit(0);
             }
+            
+            i++;
+            
         }
         if (file_orignal.size() == 0){  //no files provided
             System.out.println("Incorrect usage of Rename Utility: No file name provided");
@@ -120,17 +131,21 @@ class Rename {
                         for (int y=0; y < file_rename.size(); y++){
                             file_rename.set(y, time + file_rename.get(y));
                         }
-                    }else{
+                    }else if (!(args[k + 1].startsWith("-"))){
                         for(int y=0; y < file_rename.size(); y++){
                             file_rename.set(y,  args[k + 1] + file_rename.get(y));
                         }
-                    }    
+                    }else if (args[k + 1].startsWith("-")){
+                        System.out.println("Incorrect usage of Rename Utility: Invalid value provided for -(p|prefix) tag.");
+                        System.out.println("Run command -(h|help) for usage of Rename Utility");
+                        System.exit(0);
+                    }  
                     k++;
                 }
               
             }else if(args[k].equals("-s") || args[k].equals("-suffix")){
                 if (k + 1 == args.length ||  ((k + 1 < args.length) && flags.contains(args[k + 1]))){
-                    System.out.println("Incorrect usage of Rename Utility: -(s|suffix) requires a one or more suffix values");
+                    System.out.println("Incorrect usage of Rename Utility: -(s|suffix) requires one or more suffix values");
                     System.out.println("Run command -(h|help) for usage of Rename Utility");
                     System.exit(0);
                 }
@@ -144,11 +159,15 @@ class Rename {
                         for(int y=0; y < file_rename.size(); y++){
                             file_rename.set(y, file_rename.get(y) + time);
                         }
-                    }else{
+                    }else if (!(args[k + 1].startsWith("-"))){
                         for(int y=0; y < file_rename.size(); y++){
                             file_rename.set(y, file_rename.get(y) + args[k + 1]);
                         }
-                    }    
+                    }else if (args[k + 1].startsWith("-")){
+                        System.out.println("Incorrect usage of Rename Utility: Invalid value provided for -(s|suffix) tag.");
+                        System.out.println("Run command -(h|help) for usage of Rename Utility");
+                        System.exit(0);
+                    }   
                     k++;
                }
             }else if(args[k].equals("-r") || args[k].equals("-replace")){
@@ -159,7 +178,7 @@ class Rename {
                     System.exit(0);
                 }
 
-                if (k + 2 < args.length && !(flags.contains(args[k + 1])) && !(flags.contains(args[k + 2]))){
+                if (k + 2 < args.length && !(flags.contains(args[k + 1])) && !(flags.contains(args[k + 2])) && (!(args[k + 1].startsWith("-"))) && (!(args[k + 2].startsWith("-")))){
                     for(int y=0; y < file_rename.size(); y++){
                         String file_name = file_rename.get(y);
                         String new_file_name = file_name.replace(args[k + 1], args[k + 2]);
@@ -172,7 +191,8 @@ class Rename {
                     System.exit(0);
                 }
             }
-            k++;
+            
+                k++;
         }
         //4. Replace file name
         for (int a=0; a < file_objects.size(); a++){
