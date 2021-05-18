@@ -46,7 +46,7 @@ class Rename {
                 System.exit(0);
            }
             if (file_flags == 0 && prefix_flags == 0 && suffix_flags == 0 && replace_flags == 0){
-                System.out.println("Invalid flag/value \"" + args[j] + "\" provided.");
+                System.out.println("Invalid flag or value \"" + args[j] + "\" provided.");
                 System.out.println("Run command -(h|help) for usage of Rename Utility");
                 System.exit(0);
            }
