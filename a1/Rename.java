@@ -19,6 +19,7 @@ class Rename {
         int replace_flags = 0;
        //1. Check for -h|help command 
        for (int j=0; j < args.length; j++){
+            
             if (args[j].equals("-file") || args[j].equals("-f")){
                 file_flags++;
             }
@@ -32,6 +33,7 @@ class Rename {
                 replace_flags++;
             }
 
+            
             if (args[j].equals("-h") || args[j].equals("-help")){
                 System.out.println("(c) 2021 Maitry Mistry. Revised: June 4, 2021");
                 System.out.println("Usage: ./rename [-option argument1 argument2 ...]");
@@ -41,6 +43,11 @@ class Rename {
                 System.out.println("-s|suffix [string]          :: rename [filename] so that it ends with [string].");
                 System.out.println("-r|replace [str1] [str2]    :: rename [filename] by replacing all instances of [str1] with [str2].");
                 System.out.println("-h|help                     :: print out this help and exit the program.");
+                System.exit(0);
+           }
+            if (file_flags == 0 && prefix_flags == 0 && suffix_flags == 0 && replace_flags == 0){
+                System.out.println("Invalid flag/value \"" + args[j] + "\" provided.");
+                System.out.println("Run command -(h|help) for usage of Rename Utility");
                 System.exit(0);
            }
        }
