@@ -188,6 +188,12 @@ class Rename {
                 if (k + 2 < args.length && !(flags.contains(args[k + 1])) && !(flags.contains(args[k + 2])) && (!(args[k + 1].startsWith("-"))) && (!(args[k + 2].startsWith("-")))){
                     for(int y=0; y < file_rename.size(); y++){
                         String file_name = file_rename.get(y);
+
+                        if (!(file_name.contains(args[k+1]))){
+                            System.out.println("Incorrect usage of Rename Utility: File " + file_orignal.get(y) + " doesn't contain string " + args[k + 1]+ " to be replaced." );
+                            System.out.println("Run command -(h|help) for usage of Rename Utility");
+                            System.exit(0);
+                        }
                         String new_file_name = file_name.replace(args[k + 1], args[k + 2]);
                         file_rename.set(y, new_file_name);
                     }
