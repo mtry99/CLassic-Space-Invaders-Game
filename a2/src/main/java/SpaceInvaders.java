@@ -18,8 +18,7 @@ public class SpaceInvaders extends Application{
 
         //get titleScreen
         Scene titleScreen = new TitleScreen().getScene();
-        stage.setScene(titleScreen);
-        stage.show();
+
 
         //get gameScreen
         GameScreen game = new GameScreen();
@@ -44,17 +43,8 @@ public class SpaceInvaders extends Application{
            }
         });
 
-
-        //Handle gameScreen Events
-        gameScreen.setOnKeyPressed(keyEvent -> {
-            //Quit Game
-            if (keyEvent.getCode() == KeyCode.Q){
-                System.exit(0);
-            }
-        });
-
-
-
+        stage.setScene(titleScreen);
+        stage.show();
 
     }
 }

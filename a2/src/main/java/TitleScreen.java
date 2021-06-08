@@ -25,7 +25,7 @@ public class TitleScreen{
         Label fire = new Label("SPACE - Fire!");
         Label quitGame = new Label ("Q - Quit Game");
         Label levels = new Label("1 or 2 or 3 - Start Game at Specific Level");
-        Label copyRight = new Label("Implemented by Maitry Mistry for CS 349, University of Waterloo, S21");
+        Label copyRight = new Label("Implemented by Maitry Mistry (20778013) for CS 349, University of Waterloo, S21");
 
         /* Style Instruction Labels */
         instructions.setFont(new Font("Verdana", 26));
@@ -56,7 +56,7 @@ public class TitleScreen{
         levels.setLayoutX(240);
         levels.setLayoutY(400);
 
-        copyRight.setLayoutX(200);
+        copyRight.setLayoutX(170);
         copyRight.setLayoutY(520);
 
         /* Set scene */

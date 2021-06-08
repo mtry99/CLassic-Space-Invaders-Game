@@ -1,12 +1,7 @@
-import javafx.geometry.Bounds;
 import javafx.scene.Node;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
-import javafx.scene.text.Font;
 import javafx.scene.Scene;
 import javafx.scene.Group;
-import javafx.scene.control.Label;
-import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import javafx.animation.AnimationTimer;
 
@@ -21,16 +16,26 @@ public class GameScreen {
     private Header header;
     private Player player;
     private Group enemiesGroup;
-    private Enemy [][] enemies;
+    private GameOver gameover;
+    private AnimationTimer timer;
+    private SoundEffect explosion;
+    private SoundEffect shoot;
+    private SoundEffect enemyKilled;
+
+    boolean GAME_OVER;
+    boolean ENEMIES_REACHED_BOTTOM;
+    boolean WINNER;
+
 
     int level = 0;
     int score = 0;
-    int lives = 3;
+    int lives = 0;
+    int NUM_ALIENS;
 
     /* Player */
-    boolean STOPPED = true;
-    boolean MOVE_RIGHT = false;
-    boolean MOVE_LEFT = false;
+    boolean STOPPED;
+    boolean MOVE_RIGHT;
+    boolean MOVE_LEFT;
 
     /* Player shoot */
     ArrayList <PlayerBullet> playerBullets;
@@ -39,20 +44,19 @@ public class GameScreen {
     double player_bullet_speed = 5;
 
     /* Enemies */
-    double ENEMY_LEVEL1_SPEED = 1;
-    double ENEMY_LEVEL2_SPEED = 2;
-    double ENEMY_LEVEL3_SPEED = 3;
+    double ENEMY_LEVEL1_SPEED = 1.25;
+    double ENEMY_LEVEL2_SPEED = 3;
+    double ENEMY_LEVEL3_SPEED = 4;
 
-    double X_MAX = 850;
-    double X_MIN = -50;
+    double X_MAX = 750;
+    double X_MIN = 0;
 
-    double ENEMIES_X_LEFT = 130;
-    double ENEMIES_X_RIGHT = 680;
-    double ENEMIES_Y = 80;
-    boolean ENEMIES_MOVE_RIGHT = true;
-    boolean ENEMIES_MOVE_DOWN = false;
+    boolean ENEMIES_MOVE_RIGHT;
+    boolean ENEMIES_MOVE_DOWN;
     double ENEMY_SPEED = 0;
-    double ENEMY_DOWN_SPEED = 10;
+    double ENEMY_DOWN_SPEED = 15;
+    private Enemy [][] enemies;
+
 
     /* Enemy shoot */
     ArrayList <EnemyBullet> enemyBullets;
@@ -64,6 +68,32 @@ public class GameScreen {
 
     GameScreen(){
         root = new Group();
+        gameScreen = new Scene(root, Color.BLACK);
+    };
+
+    public void setLevel(int lev){
+        level = lev;
+    }
+
+    public void populateGameScreen(){
+        lives = 3;
+        NUM_ALIENS = 50;
+        STOPPED = true;
+        MOVE_RIGHT = false;
+        MOVE_LEFT = false;
+        ENEMIES_MOVE_RIGHT = true;
+        ENEMIES_MOVE_DOWN = true;
+        GAME_OVER = false;
+        WINNER = false;
+        ENEMIES_REACHED_BOTTOM = false;
+        player_bullet_speed = 5;
+
+        /* Set up sounds */
+        explosion = new SoundEffect("sounds/explosion.wav");
+        shoot = new SoundEffect("sounds/shoot.wav");
+        enemyKilled = new SoundEffect("sounds/invaderkilled.wav");
+
+
         header = new Header();
         player = new Player();
         enemiesGroup = new Group();
@@ -75,15 +105,6 @@ public class GameScreen {
         root.getChildren().add(header.getDisplayLives());
         root.getChildren().add(player.getPlayer());
         root.getChildren().add(enemiesGroup);
-
-        gameScreen = new Scene(root, Color.BLACK);
-    };
-
-    public void setLevel(int lev){
-        level = lev;
-    }
-
-    public void populateGameScreen(){
 
         /* Populate Header values */
         header.updateLevel(level);
@@ -105,20 +126,50 @@ public class GameScreen {
 
         /* Key Handling events to move Player */
 
-        //Move Player LEFT or RIGHT
+
         gameScreen.setOnKeyPressed(keyEvent -> {
-            if (STOPPED && (keyEvent.getCode() == KeyCode.A ||  keyEvent.getCode() == KeyCode.LEFT)) {   // GO LEFT
+            //GO LEFT
+            if (STOPPED && (keyEvent.getCode() == KeyCode.A ||  keyEvent.getCode() == KeyCode.LEFT)) {
                 STOPPED = false;
                 MOVE_LEFT = true;
             }
-            if (STOPPED && (keyEvent.getCode() == KeyCode.D ||  keyEvent.getCode() == KeyCode.RIGHT)) {  // GO RIGHT
+            //GO RIGHT
+            if (STOPPED && (keyEvent.getCode() == KeyCode.D ||  keyEvent.getCode() == KeyCode.RIGHT)) {
                 STOPPED = false;
                 MOVE_RIGHT = true;
             }
-            if (keyEvent.getCode() == KeyCode.SPACE){
+            //SHOOT
+            if ((keyEvent.getCode() == KeyCode.SPACE) && !GAME_OVER){
                 playerShoot();
-
             }
+            //Quit Game
+            if (keyEvent.getCode() == KeyCode.Q){
+                System.exit(0);
+            }
+
+            //Advance to Next Level
+            if (keyEvent.getCode() == KeyCode.ENTER && GAME_OVER && WINNER && (level < 3)){
+                setLevel(level + 1);
+                root.getChildren().remove(gameover);
+                root.getChildren().clear();
+                populateGameScreen();
+            }
+            //Completed the Game so Restart Game at Level 1
+            if (keyEvent.getCode() == KeyCode.ENTER && GAME_OVER && WINNER){
+                setLevel(0);
+                score = 0;
+                root.getChildren().remove(gameover);
+                root.getChildren().clear();
+                populateGameScreen();
+            }
+            if (keyEvent.getCode() == KeyCode.ENTER && GAME_OVER && !WINNER){
+                setLevel(level);
+                score = 0;
+                root.getChildren().remove(gameover);
+                root.getChildren().clear();
+                populateGameScreen();
+            }
+
         });
 
         //Stop Moving Player
@@ -129,23 +180,28 @@ public class GameScreen {
                MOVE_RIGHT = false;
            }
         });
-
     }
 
     public void startGameTimer(){
-        AnimationTimer timer = new AnimationTimer(){
+
+        timer = new AnimationTimer(){
 
             @Override
             public void handle(long now) {
                 movePlayer();
-               // moveEnemies();
+                moveEnemies();
                 movePlayerShots();
 
                 checkIfPlayerHitEnemy();
 
-
                 enemiesShoot();
                 moveEnemiesShots();
+                checkIfEnemyHitPlayer();
+
+                if (GAME_OVER){
+                    timer.stop();
+                    gameOverDisplay();
+                }
             }
         };
         timer.start();
@@ -169,6 +225,7 @@ public class GameScreen {
         long current_time = System.currentTimeMillis();
         //Can only shoot once every 500 ms
         if (current_time - player_shoot_frequency > player_last_shoot_timing){
+            shoot.playSound();
             player_last_shoot_timing = current_time;
             PlayerBullet playerBullet = new PlayerBullet();
             playerBullet.setPosition(player.getPosition());
@@ -195,18 +252,23 @@ public class GameScreen {
     }
 
     private void checkIfPlayerHitEnemy(){
-        for (int i=4; i >= 0; i--){
-            for (int j=0; j < 10; j++){
-                if (enemies[i][j].alive){
-                    for (PlayerBullet bullet : playerBullets){
-
-                       if (objectsCollide(bullet, enemies[i][j])){
-                           System.out.println("i: " +  i + " j: " + j);
-                           deleteEnemy(enemies[i][j].getEnemy());
-                            //deleteBullet(bullet);
+        for (int i = 0; i < 5; i++) {
+            for (int j=0; j < 10; j++) {
+                for (PlayerBullet bullet: playerBullets) {
+                    Node enemy = enemies[i][j].getEnemy();
+                    if (enemies[i][j].alive) {
+                        if (objectsCollide(bullet.getPlayerBullet(), enemy)){
+                            enemyKilled.playSound();
+                            deleteBullet(bullet);
                             playerBullets.remove(bullet);
+                            deleteEnemy(enemy);
                             enemies[i][j].alive = false;
-
+                            NUM_ALIENS--;
+                            score += 10;
+                            header.updateScore(score);
+                            ENEMY_SPEED += 0.10;
+                            player_bullet_speed += 0.05;
+                            checkGameOver();
                             break;
                         }
                     }
@@ -215,59 +277,78 @@ public class GameScreen {
         }
     }
 
-    boolean objectsCollide(PlayerBullet bullet, Enemy e){
-        Node a = bullet.getPlayerBullet();
-        Node b = enemiesGroup.getChildren().get(e.groupID);
-        if (a.getBoundsInParent().intersects(b.getBoundsInParent())){
-            
-            System.out.println("Bullet X: " +  bullet.X + " Bullet Y: " +  bullet.Y);
-            System.out.println("Alien X: " + e.X_relative + "Alien Y: " + e.Y_relative);
-            return true;
-        }
-        return false;
+    private void respawnPlayer(){
+        root.getChildren().remove(player.getPlayer());
+        player = new Player();
+        root.getChildren().add(player.getPlayer());
+    }
+
+    boolean objectsCollide(Node a, Node b){
+        return a.getBoundsInParent().intersects(b.getBoundsInParent());
     }
 
     /* ENEMIES */
     private void createEnemiesGroup(){
-
-        int kind = 0;
-        double x = 0;
-        double y = 0;
-        int ID = 0;
-
         enemies = new Enemy[5][10];
-        for (int i=0; i < 5; i++){
-            y += 35;
-            kind ++;
-            for (int j=0; j < 10; j++){
-                x += 45;
-                enemies[i][j] = new Enemy(kind);
-                enemies[i][j].positionEnemy(x,y);
-                enemies[i][j].X_relative =x;
-                enemies[i][j].Y_relative = y;
-                enemies[i][j].setEnemy(x + 142,y + 110);
-                enemiesGroup.getChildren().add((enemies[i][j]).getEnemy());
-                enemies[i][j].groupID = ID;
-                ID++;
-            }
-            x = 0;
-            if (kind >= 3){
-                kind = 0;
+
+        for (int i = 0; i < 5; i++){
+            for (int j = 0; j < 10; j++){
+                Enemy enemy;
+                if (i == 0){
+                    enemy = new Enemy(3);
+                }else if (i == 1 || i == 2){
+                    enemy = new Enemy(2);
+                }else{
+                    enemy = new Enemy(1);
+                }
+                enemies[i][j] = enemy;
+                enemy.positionEnemy((j * 40) + 190, (i * 30 )+ 90);
+                enemiesGroup.getChildren().add(enemy.getEnemy());
+
             }
         }
-
-        //Position enemies
-        enemiesGroup.setLayoutX(130);
-        enemiesGroup.setLayoutY(80);
 
     }
 
     private void moveEnemies(){
         //Check Enemies Boundaries
-        if (ENEMIES_MOVE_RIGHT && ((ENEMIES_X_RIGHT + ENEMY_SPEED) >= X_MAX)){  //CHECK RIGHT BOUNDARY
+        double enemies_left_boundary = 0;
+        double enemies_right_boundary = 0;
+        double enemies_down_boundary = 0;
+        outerloop:
+        for (int j = 0; j < 10; j ++){
+            for (int i=0; i < 5; i++){
+                if (enemies[i][j].alive){
+                    enemies_left_boundary= enemies[i][j].getX();
+                    break outerloop;
+                }
+            }
+        }
+
+        outerloop2:
+        for (int j = 9; j >= 0; j --){
+            for (int i= 0 ;i < 5; i++){
+                if (enemies[i][j].alive){
+                    enemies_right_boundary= enemies[i][j].getX();
+                    break outerloop2;
+                }
+            }
+        }
+
+        outerloop3:
+        for (int i = 4; i >= 0; i --){
+            for (int j = 0; j < 10; j++){
+                if (enemies[i][j].alive){
+                    enemies_down_boundary = enemies[i][j].getY();
+                    break outerloop3;
+                }
+            }
+        }
+
+        if (ENEMIES_MOVE_RIGHT && ((enemies_right_boundary + ENEMY_SPEED) >= X_MAX)){  //CHECK RIGHT BOUNDARY
             ENEMIES_MOVE_RIGHT = false;
             ENEMIES_MOVE_DOWN = true;
-        }else if (!ENEMIES_MOVE_RIGHT && (ENEMIES_X_LEFT - ENEMY_SPEED <= X_MIN)) {      //CHECK LEFT BOUNDARY
+        }else if (!ENEMIES_MOVE_RIGHT && (enemies_left_boundary - ENEMY_SPEED <= X_MIN)) {      //CHECK LEFT BOUNDARY
             ENEMIES_MOVE_RIGHT = true;
             ENEMIES_MOVE_DOWN = true;
         }
@@ -275,28 +356,26 @@ public class GameScreen {
         //Move Enemies RIGHT , LEFT , or DOWN
 
         //Move Enemies down 1 Row
-        if (ENEMIES_MOVE_DOWN){
-                ENEMIES_Y += ENEMY_DOWN_SPEED;
+        if (ENEMIES_MOVE_DOWN && (enemies_down_boundary + ENEMY_DOWN_SPEED <= 500)){
         for (int i=0; i < 5; i++) {
             for (int j = 0; j < 10; j++) {
                 enemies[i][j].incrementEnemyPosBy(0, ENEMY_DOWN_SPEED);
             }
         }
         ENEMIES_MOVE_DOWN = false;
-        } else if (ENEMIES_MOVE_RIGHT){        //MOVE RIGHT
-            ENEMIES_X_LEFT += ENEMY_SPEED;
-            ENEMIES_X_RIGHT += ENEMY_SPEED;
 
+        } else if (ENEMIES_MOVE_DOWN){
+            ENEMIES_REACHED_BOTTOM = true;
+            checkGameOver();
+        }
+        else if (ENEMIES_MOVE_RIGHT){        //MOVE RIGHT
             //Update enemy positions
             for (int i=0; i < 5; i++) {
                 for (int j = 0; j < 10; j++) {
                     enemies[i][j].incrementEnemyPosBy(ENEMY_SPEED, 0);
                 }
             }
-
         }else {
-            ENEMIES_X_LEFT -= ENEMY_SPEED;       //MOVE LEFT
-            ENEMIES_X_RIGHT -= ENEMY_SPEED;
             //Update enemy positions
             for (int i=0; i < 5; i++) {
                 for (int j = 0; j < 10; j++) {
@@ -304,12 +383,6 @@ public class GameScreen {
                 }
             }
         }
-
-
-
-
-        enemiesGroup.setLayoutX(ENEMIES_X_LEFT);
-        enemiesGroup.setLayoutY(ENEMIES_Y);
     }
 
     private void setEnemiesSpeed(double speed){
@@ -336,7 +409,7 @@ public class GameScreen {
 
                     double posX = (enemies[enemy_at_x][enemy_at_y]).getX();
                     double posY = (enemies[enemy_at_x][enemy_at_y]).getY();
-                    enemyBullet.setPosition(posX, posY);
+                    enemyBullet.setPosition(posX + 17 , posY + 25);
                     root.getChildren().add(enemyBullet.getEnemyBulletView());
                     found_alive_enemy = true;
                 }
@@ -358,10 +431,48 @@ public class GameScreen {
     }
 
     private void deleteEnemyBullet(EnemyBullet bullet){
-        root.getChildren().remove(bullet);
+        root.getChildren().remove(bullet.getEnemyBulletView());
     }
 
     private void deleteEnemy(Node enemy){
-        enemy.setVisible(false);
+
+        enemiesGroup.getChildren().remove(enemy);
+    }
+
+    private void checkIfEnemyHitPlayer(){
+
+        for (EnemyBullet bullet: enemyBullets){
+            if (objectsCollide(bullet.getEnemyBulletView(), player.getPlayer())){
+                explosion.playSound();
+                deleteEnemyBullet(bullet);
+                enemyBullets.remove(bullet);
+                respawnPlayer();
+                header.updateLives(this.lives - 1);
+                lives --;
+                if (score - 25 > 0){
+                    score -= 25;
+                    header.updateScore(score);
+                }
+                checkGameOver();
+                break;
+            }
+        }
+    }
+
+
+    /* GAME OVER */
+    private void checkGameOver(){
+        if ((lives == 0) || ENEMIES_REACHED_BOTTOM || (NUM_ALIENS == 0)){
+            GAME_OVER = true;
+        }
+        if (NUM_ALIENS == 0){
+            WINNER = true;
+        }
+
+    }
+
+    private void gameOverDisplay(){
+        gameover = new GameOver(score, level, WINNER);
+        root.getChildren().add(gameover.getGameOver());
     }
 }
