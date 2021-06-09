@@ -74,7 +74,7 @@ class Rename {
        }
 
        if (replace_flags < 1 && prefix_flags < 1 && suffix_flags < 1){
-        System.out.println("Incorrect usage of Rename Utility: No valid flags provided for renaming.");
+        System.out.println("Incorrect usage of Rename Utility: No valid flags provided.");
         System.out.println("Run command -(h|help) to get a list of valid flags and their usage.");
         System.exit(0);
        }
