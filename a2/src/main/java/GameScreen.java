@@ -45,8 +45,8 @@ public class GameScreen {
 
     /* Enemies */
     double ENEMY_LEVEL1_SPEED = 1.25;
-    double ENEMY_LEVEL2_SPEED = 3;
-    double ENEMY_LEVEL3_SPEED = 4;
+    double ENEMY_LEVEL2_SPEED = 2.5;
+    double ENEMY_LEVEL3_SPEED = 3.5;
 
     double X_MAX = 750;
     double X_MIN = 0;
@@ -61,7 +61,11 @@ public class GameScreen {
     /* Enemy shoot */
     ArrayList <EnemyBullet> enemyBullets;
     long enemies_last_shoot_timing = System.currentTimeMillis();
-    long enemy_shoot_frequency = 1000;
+
+    long ENEMY_SHOOT_FREQ_LEVEL_1 = 2500;
+    long ENEMY_SHOOT_FREQ_LEVEL_2 = 2000;
+    long ENEMY_SHOOT_FREQ_LEVEL_3 = 1000;
+    long enemy_shoot_frequency;
     double enemy_bullet_speed = 5;
 
     /* GAME SCREEN */
@@ -114,12 +118,14 @@ public class GameScreen {
         /* Set Enemies Speed */
         if (level == 1){
             setEnemiesSpeed(ENEMY_LEVEL1_SPEED);
+            enemy_shoot_frequency = ENEMY_SHOOT_FREQ_LEVEL_1;
         }else if (level == 2){
             setEnemiesSpeed(ENEMY_LEVEL2_SPEED);
+            enemy_shoot_frequency = ENEMY_SHOOT_FREQ_LEVEL_2;
         }else if (level == 3){
             setEnemiesSpeed(ENEMY_LEVEL3_SPEED);
+            enemy_shoot_frequency = ENEMY_SHOOT_FREQ_LEVEL_3;
         }
-
 
         /* startGameTimer */
         startGameTimer();
@@ -362,6 +368,7 @@ public class GameScreen {
                 enemies[i][j].incrementEnemyPosBy(0, ENEMY_DOWN_SPEED);
             }
         }
+        enemiesShootAction();
         ENEMIES_MOVE_DOWN = false;
 
         } else if (ENEMIES_MOVE_DOWN){
@@ -394,25 +401,28 @@ public class GameScreen {
 
         if (current_time - enemy_shoot_frequency > enemies_last_shoot_timing){
             enemies_last_shoot_timing = current_time;
+            enemiesShootAction();
+        }
+    }
 
-            //choose random ALIVE enemy to shoot
-            boolean found_alive_enemy = false;
-            while (!found_alive_enemy){
-                Random rand = new Random();
-                int enemy_at_x = rand.nextInt(5);
-                int enemy_at_y = rand.nextInt(10);
+    private void enemiesShootAction(){
+        //choose random ALIVE enemy to shoot
+        boolean found_alive_enemy = false;
+        while (!found_alive_enemy){
+            Random rand = new Random();
+            int enemy_at_x = rand.nextInt(5);
+            int enemy_at_y = rand.nextInt(10);
 
-                if (enemies[enemy_at_x][enemy_at_y].alive){
-                    //found alive Enemy to shoot
-                    EnemyBullet enemyBullet = new EnemyBullet((enemies[enemy_at_x][enemy_at_y]).getEnemyID());
-                    enemyBullets.add(enemyBullet);
+            if (enemies[enemy_at_x][enemy_at_y].alive){
+                //found alive Enemy to shoot
+                EnemyBullet enemyBullet = new EnemyBullet((enemies[enemy_at_x][enemy_at_y]).getEnemyID());
+                enemyBullets.add(enemyBullet);
 
-                    double posX = (enemies[enemy_at_x][enemy_at_y]).getX();
-                    double posY = (enemies[enemy_at_x][enemy_at_y]).getY();
-                    enemyBullet.setPosition(posX + 17 , posY + 25);
-                    root.getChildren().add(enemyBullet.getEnemyBulletView());
-                    found_alive_enemy = true;
-                }
+                double posX = (enemies[enemy_at_x][enemy_at_y]).getX();
+                double posY = (enemies[enemy_at_x][enemy_at_y]).getY();
+                enemyBullet.setPosition(posX + 17 , posY + 25);
+                root.getChildren().add(enemyBullet.getEnemyBulletView());
+                found_alive_enemy = true;
             }
         }
     }
