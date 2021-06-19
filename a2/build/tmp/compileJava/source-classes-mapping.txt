@@ -2,8 +2,8 @@ Header.java
  Header
 PlayerBullet.java
  PlayerBullet
-GameOver.java
- GameOver
+SpaceInvaders.java
+ SpaceInvaders
 TitleScreen.java
  TitleScreen
 Enemy.java
@@ -14,8 +14,8 @@ EnemyBullet.java
  EnemyBullet
 SoundEffect.java
  SoundEffect
-SpaceInvaders.java
- SpaceInvaders
 GameScreen.java
  GameScreen
  GameScreen$1
+GameOver.java
+ GameOver

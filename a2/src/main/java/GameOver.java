@@ -1,14 +1,16 @@
 import javafx.scene.Group;
 import javafx.scene.control.Label;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import javafx.geometry.Pos;
 
 public class GameOver {
-    Group gameOver;
+    StackPane gameOver;
 
     GameOver(int score, int level, boolean winner){
-
 
         /* Style Back Ground */
         Rectangle frame = new Rectangle(390, 240, Color.LIGHTGREY);
@@ -36,7 +38,6 @@ public class GameOver {
         displayNext.setFont(new Font("Verdana", 16));
         displayQuit.setFont(new Font("Verdana", 16));
 
-
         displayResult.setTextFill(Color.BLACK);
         displayScore.setTextFill(Color.BLACK);
         displayNext.setTextFill(Color.BLACK);
@@ -46,32 +47,20 @@ public class GameOver {
         displayResult.setStyle("-fx-font-weight: bold");
 
 
-        /* Position Labels */
-        frame.setX(220);
-        frame.setY(180);
+        VBox instructions = new VBox(10);
 
-        if (winner){
-            displayResult.setLayoutX(330);
-            displayResult.setLayoutY(200);
-        }else{
-            displayResult.setLayoutX(305);
-            displayResult.setLayoutY(200);
-        }
+        instructions.getChildren().add(displayResult);
+        instructions.getChildren().add(displayScore);
+        instructions.getChildren().add(displayNext);
+        instructions.getChildren().add(displayQuit);
+        instructions.setAlignment(Pos.CENTER);
 
-
-        displayScore.setLayoutX(380);
-        displayScore.setLayoutY(245);
-
-        displayNext.setLayoutX(325);
-        displayNext.setLayoutY(290);
-
-        displayQuit.setLayoutX(365);
-        displayQuit.setLayoutY(320);
-
-        gameOver = new Group(frame, displayResult, displayScore, displayNext, displayQuit);
+        gameOver = new StackPane(frame, instructions);
+        gameOver.setLayoutX(220);
+        gameOver.setLayoutY(180);
     };
 
-    public Group getGameOver(){
+    public StackPane getGameOver(){
         return this.gameOver;
     }
 }
