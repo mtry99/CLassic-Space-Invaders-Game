@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!-- action button for undo -->
+    <item android:title="undo"
+          android:id="@+id/undo"
+          android:orderInCategory="100"
+          app:showAsAction="always"
+          android:icon="@drawable/undo_unselected"/>
+
+    <!-- action button for redo -->
+
+    <item android:title="redo"
+          android:id="@+id/redo"
+          android:orderInCategory="100"
+          app:showAsAction="always"
+          android:icon="@drawable/redo_unselected"/>
+
+    <!-- action button for highlight -->
+    <item android:title="highlight"
+          android:id="@+id/highlight"
+          android:orderInCategory="100"
+          app:showAsAction="always"
+          android:icon="@drawable/highlight_unselected"/>
+
+    <!-- action button for drawing -->
+    <item android:title="draw"
+          android:id="@+id/draw"
+          android:orderInCategory="100"
+          app:showAsAction="always"
+          android:icon="@drawable/pen_unselected"/>
+
+    <!-- action button for erasing -->
+    <item android:title="erase"
+          android:id="@+id/erase"
+          android:orderInCategory="100"
+          app:showAsAction="always"
+          android:icon="@drawable/erase_unselected"/>
+</menu>
