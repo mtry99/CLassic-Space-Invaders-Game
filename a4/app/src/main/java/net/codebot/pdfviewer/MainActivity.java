@@ -3,10 +3,8 @@ package net.codebot.pdfviewer;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Path;
+import android.graphics.*;
+import android.graphics.drawable.Drawable;
 import android.graphics.pdf.PdfRenderer;
 import android.os.Build;
 import android.os.Bundle;
@@ -32,15 +30,28 @@ import java.io.InputStream;
 
 public class MainActivity extends AppCompatActivity  {
 
+
     final String LOGNAME = "pdf_viewer";
     //final String LOGNAME = "pdf_image";
     final String FILENAME = "shannon1948.pdf";
     final int FILERESID = R.raw.shannon1948;
 
 
+    PaintLine line;
+    LinearLayout layout;
+
+    static ScaleGestureDetector mScaleGestureDetector;
+    float mScaleFactor = 1.0f;
+
+
+
     // Toolbar actions
 
-    boolean undo, redo, highlight, draw, erase = false;
+    static boolean highlight;
+    static boolean draw;
+    static boolean erase = false;
+    static MenuItem undo;
+    static MenuItem redo;
 
 
     // Page Up/Down
@@ -56,10 +67,15 @@ public class MainActivity extends AppCompatActivity  {
     private ParcelFileDescriptor parcelFileDescriptor;
     private PdfRenderer.Page currentPage;
 
+
     // custom ImageView class that captures strokes and draws them over the image
+
     PDFimage pageImage;
-    private ScaleGestureDetector mScaleGestureDetector;
-    private float mScaleFactor = 1.0f;
+    PDFimage pageImage0;
+    PDFimage pageImage1;
+    PDFimage pageImage2;
+
+
 
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -79,13 +95,29 @@ public class MainActivity extends AppCompatActivity  {
 
 
         /* PDF */
-        LinearLayout layout = findViewById(R.id.pdfLayout);
-        pageImage = new PDFimage(this);
-        layout.addView(pageImage);
-        layout.setEnabled(true);
 
-        pageImage.setMinimumWidth(1500);
-        pageImage.setMinimumHeight(2000);
+        pageImage0 = new PDFimage(this);
+
+        pageImage1 = new PDFimage (this);
+
+        pageImage2 = new PDFimage(this);
+
+
+        layout = findViewById(R.id.pdfLayout);
+
+
+        pageImage0.setMinimumWidth(1500);
+        pageImage0.setMinimumHeight(2000);
+
+        pageImage1.setMinimumWidth(1500);
+        pageImage1.setMinimumHeight(2000);
+
+        pageImage2.setMinimumWidth(1500);
+        pageImage2.setMinimumHeight(2000);
+
+        mScaleGestureDetector= new ScaleGestureDetector(this, new ScaleListener());
+
+
         Log.d(LOGNAME, "Page is: " + page);
 
         /* PAGE UP DOWN */
@@ -93,15 +125,35 @@ public class MainActivity extends AppCompatActivity  {
         pageUp = (Button) findViewById(R.id.pageup);
         pageNum = findViewById(R.id.pagenum);
 
-        mScaleGestureDetector = new ScaleGestureDetector(this, new ScaleListener());
-
 
         pageDown.setOnClickListener(new View.OnClickListener(){
             public void onClick(View view){
                 Log.d(LOGNAME, "Page down");
                 if (page > 0){
                     page --;
-                    showPage(page);
+                    layout.removeViewAt(0);
+                    layout.setEnabled(true);
+                    if (page == 0){
+                        pageImage = pageImage0;
+                        layout.addView(pageImage0);
+                    }else if (page == 1){
+                        pageImage = pageImage1;
+                        layout.addView(pageImage1);
+                    }else if (page == 2){
+                        pageImage = pageImage2;
+                        layout.addView(pageImage2);
+                    }
+                    if (pageImage.undopaths.size() > 0){
+                        undo.setIcon(R.drawable.undo_selected);
+                    }else {
+                        undo.setIcon(R.drawable.undo_unselected);
+                    }
+                    if (pageImage.redopaths.size() > 0){
+                        redo.setIcon(R.drawable.undo_selected);
+                    }else{
+                        redo.setIcon(R.drawable.redo_unselected);
+                    }
+
                     String pn = "Page: " + String.valueOf(page + 1) + "/3";
                     pageNum.setText(pn);
 
@@ -114,14 +166,34 @@ public class MainActivity extends AppCompatActivity  {
                 Log.d(LOGNAME, "Page up");
                 if (page < 2){
                     page ++;
-                    showPage(page);
+                    layout.removeViewAt(0);
+                    layout.setEnabled(true);
+                    if (page == 0){
+                        pageImage = pageImage0;
+                        layout.addView(pageImage0);
+
+                    }else if (page == 1){
+                        pageImage = pageImage1;
+                        layout.addView(pageImage1);
+                    }else if (page == 2){
+                        pageImage = pageImage2;
+                        layout.addView(pageImage2);
+                    }
+                    if (pageImage.undopaths.size() > 0){
+                        undo.setIcon( R.drawable.undo_selected);
+                    }else {
+                        undo.setIcon(R.drawable.undo_unselected);
+                    }
+                    if (pageImage.redopaths.size() > 0){
+                        redo.setIcon(R.drawable.redo_selected);
+                    }else{
+                        redo.setIcon(R.drawable.redo_unselected);
+                    }
                     String pn = "Page: " + String.valueOf(page + 1) + "/3";
                     pageNum.setText(pn);
                 }
             }
         });
-
-
 
         try {
             openRenderer(this);
@@ -129,11 +201,17 @@ public class MainActivity extends AppCompatActivity  {
             Log.d(LOGNAME, "Opening Page " + page);
             String pn = "Page: " + String.valueOf(page + 1) + "/3";
             pageNum.setText(pn);
-            showPage(page);
+
+            showPage(0, pageImage0);
+            showPage(1, pageImage1);
+            showPage(2, pageImage2);
+
+            pageImage = pageImage0;
+            layout.addView(pageImage0);
+
         } catch (IOException exception) {
             Log.d(LOGNAME, "Error opening PDF");
         }
-
 
     }
 
@@ -143,6 +221,8 @@ public class MainActivity extends AppCompatActivity  {
     @Override
     public boolean onCreateOptionsMenu( Menu menu ) {
         getMenuInflater().inflate(R.menu.main, menu);
+        undo = menu.getItem(0);
+        redo = menu.getItem(1);
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -152,23 +232,41 @@ public class MainActivity extends AppCompatActivity  {
         switch (item.getItemId()) {
             case R.id.undo:
                 Log.d(LOGNAME, "clicked undo");
-                if (!undo){
-                    undo = true;
-                    item.setIcon(ContextCompat.getDrawable(this, R.drawable.undo_selected));
-                }else{
-                    undo = false;
-                    item.setIcon(ContextCompat.getDrawable(this, R.drawable.undo_unselected));
+
+                if (pageImage != null){
+                    pageImage.undo();
                 }
+
+                if (pageImage.undopaths.size() > 0){
+                    undo.setIcon(ContextCompat.getDrawable(this, R.drawable.undo_selected));
+                }else {
+                    undo.setIcon(ContextCompat.getDrawable(this, R.drawable.undo_unselected));
+                }
+                if (pageImage.redopaths.size() > 0){
+                    redo.setIcon(ContextCompat.getDrawable(this, R.drawable.redo_selected));
+                }else{
+                    redo.setIcon(ContextCompat.getDrawable(this, R.drawable.redo_unselected));
+                }
+
+
+
                 return true;
+
 
             case R.id.redo:
                 Log.d(LOGNAME, "clicked redo");
-                if (!redo){
-                    redo = true;
-                    item.setIcon(ContextCompat.getDrawable(this, R.drawable.redo_selected));
+                if (pageImage != null){
+                    pageImage.redo();
+                }
+                if (pageImage.redopaths.size() > 0){
+                    redo.setIcon(ContextCompat.getDrawable(this, R.drawable.redo_selected));
                 }else{
-                    redo = false;
-                    item.setIcon(ContextCompat.getDrawable(this, R.drawable.redo_unselected));
+                    redo.setIcon(ContextCompat.getDrawable(this, R.drawable.redo_unselected));
+                }
+                if (pageImage.undopaths.size() > 0){
+                    undo.setIcon(ContextCompat.getDrawable(this, R.drawable.undo_selected));
+                }else {
+                    undo.setIcon(ContextCompat.getDrawable(this, R.drawable.undo_unselected));
                 }
 
                 return true;
@@ -204,6 +302,18 @@ public class MainActivity extends AppCompatActivity  {
                     erase = false;
                     item.setIcon(ContextCompat.getDrawable(this, R.drawable.erase_unselected));
                 }
+
+                if (pageImage.undopaths.size() > 0){
+                    undo.setIcon(ContextCompat.getDrawable(this, R.drawable.undo_selected));
+                }else {
+                    undo.setIcon(ContextCompat.getDrawable(this, R.drawable.undo_unselected));
+                }
+                if (pageImage.redopaths.size() > 0){
+                    redo.setIcon(ContextCompat.getDrawable(this, R.drawable.redo_selected));
+                }else{
+                    redo.setIcon(ContextCompat.getDrawable(this, R.drawable.redo_unselected));
+                }
+
                 Log.d(LOGNAME, "clicked erase");
                 return true;
             default:
@@ -241,6 +351,7 @@ public class MainActivity extends AppCompatActivity  {
             asset.close();
             output.close();
         }
+
         parcelFileDescriptor = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY);
 
         // capture PDF data
@@ -260,8 +371,9 @@ public class MainActivity extends AppCompatActivity  {
         parcelFileDescriptor.close();
     }
 
+
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    private void showPage(int index) {
+    private void showPage(int index, PDFimage pgimage) {
         if (pdfRenderer.getPageCount() <= index) {
             return;
         }
@@ -272,6 +384,8 @@ public class MainActivity extends AppCompatActivity  {
         // Use `openPage` to open a specific page in PDF.
         currentPage = pdfRenderer.openPage(index);
         // Important: the destination bitmap must be ARGB (not RGB).
+
+
         Bitmap bitmap = Bitmap.createBitmap(currentPage.getWidth(), currentPage.getHeight(), Bitmap.Config.ARGB_8888);
 
         // Here, we render the page onto the Bitmap.
@@ -280,12 +394,10 @@ public class MainActivity extends AppCompatActivity  {
         currentPage.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
 
         // Display the page
-        pageImage.setImageBitmap(bitmap);
-        pageImage.setCanvas(bitmap);
+        pgimage.setImage(bitmap);
+        pgimage.setCanvas(bitmap);
+
     }
-
-
-
 
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
@@ -293,6 +405,7 @@ public class MainActivity extends AppCompatActivity  {
         savedInstanceState.putInt("Page", page);
     }
 
+    /*
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     public void onRestoreInstanceState(Bundle savedInstanceState) {
@@ -302,60 +415,101 @@ public class MainActivity extends AppCompatActivity  {
             showPage(page);
         }
     }
-
+    */
+    /*
     public boolean onTouchEvent(MotionEvent event) {
         float X = event.getX();
         float Y = event.getY();
 
-        boolean isToolbarAction = undo || redo || highlight || draw || erase;
-        if (isToolbarAction){
+        Log.d(LOGNAME, "Original Y " + Y);
+        Y -= 270;
 
+        Log.d(LOGNAME, "scaleFactor: " + mScaleFactor);
+
+        Log.d(LOGNAME, "X: " + X + " Y: " + Y);
+
+        boolean isToolbarAction = highlight || draw || erase;
+
+        if (isToolbarAction){
             switch (event.getAction()) {
                 case MotionEvent.ACTION_DOWN:
                     Log.d(LOGNAME, "Action down");
                     pageImage.path  = new Path();
 
-                    if (draw){
-                        pageImage.line = new PDFimage.Stroke(Color.argb(255,0,0,128), 8, pageImage.path, false);
+                    if (draw && !highlight && !erase){
+                        line = new PaintLine(Color.argb(255,0,0,128), 8, pageImage.path, false);
+                        pageImage.path.moveTo(X, Y);
+                    }else if (highlight && !draw && !erase){
+                        line = new PaintLine(Color.YELLOW, 30, pageImage.path, false);
+                        pageImage.path.moveTo(X, Y);
+                    }else if (erase && !highlight && !draw){
+                        PaintLine removeLine = null;
+                        for (PaintLine pl: pageImage.paths){
+                            RectF pBounds = new RectF();
+                            pl.path.computeBounds(pBounds, true);
+                            if (pBounds.contains(X, Y)){
+                                removeLine = pl;
+                                Log.d(LOGNAME, "eraser selected line to delete");
+                            }
+                        }
+                        if (removeLine != null){
+                            removeLine.erase = true;
+                            pageImage.undopaths.add(removeLine);
+                            pageImage.paths.remove(removeLine);
 
-                    }else if (highlight){
-                        pageImage.line = new PDFimage.Stroke(Color.YELLOW, 30, pageImage.path, false);
-                    }else if (erase){
-                        pageImage.erase = true;
-                        pageImage.line = new PDFimage.Stroke(Color.TRANSPARENT, 30, pageImage.path, true);
+                        }
+
                     }
-
-                    pageImage.path.moveTo(X, Y);
 
                     break;
                 case MotionEvent.ACTION_MOVE:
-                    pageImage.path.lineTo(X, Y);
-                    Log.d(LOGNAME, "Action move");
+                    if (!erase && (draw || highlight)){
+                        pageImage.path.lineTo(X, Y);
+                        Log.d(LOGNAME, "Action move");
+                    }
+
                     break;
                 case MotionEvent.ACTION_UP:
-                    Log.d(LOGNAME, "Action up");
-                    pageImage.path.lineTo(X, Y);
-                    pageImage.paths.add(pageImage.line);
+                    if (!erase && (draw || highlight)){
+                        Log.d(LOGNAME, "Action up");
+                        pageImage.path.lineTo(X, Y);
+                        pageImage.paths.add(line);
+                        pageImage.undopaths.add(line);
+                    }
                     break;
             }
         }else{
             mScaleGestureDetector.onTouchEvent(event);
         }
+        if (pageImage.undopaths.size() > 0){
+            undo.setIcon(ContextCompat.getDrawable(this, R.drawable.undo_selected));
+        }else {
+            undo.setIcon(ContextCompat.getDrawable(this, R.drawable.undo_unselected));
+        }
+
+        if (pageImage.redopaths.size() > 0){
+            redo.setIcon(ContextCompat.getDrawable(this, R.drawable.redo_selected));
+        }else{
+            redo.setIcon(ContextCompat.getDrawable(this, R.drawable.redo_unselected));
+        }
         return true;
     }
+
+     */
+
+
 
     private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
         @Override
         public boolean onScale(ScaleGestureDetector scaleGestureDetector){
             mScaleFactor *= scaleGestureDetector.getScaleFactor();
             mScaleFactor = Math.max(0.1f, Math.min(mScaleFactor, 10.0f));
-            pageImage.setScaleX(mScaleFactor);
-            pageImage.setScaleY(mScaleFactor);
+            ((ImageView) pageImage).setScaleX(mScaleFactor);
+            ((ImageView) pageImage).setScaleY(mScaleFactor);
             Log.d(LOGNAME, "Scaling");
             return true;
         }
     }
-
 
 
 }
