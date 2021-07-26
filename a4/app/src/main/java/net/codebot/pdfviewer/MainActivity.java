@@ -40,8 +40,8 @@ public class MainActivity extends AppCompatActivity  {
     PaintLine line;
     LinearLayout layout;
 
-    static ScaleGestureDetector mScaleGestureDetector;
-    float mScaleFactor = 1.0f;
+    static ScaleGestureDetector scaleGesture;
+    float scaleBy = 1.0f;
 
 
 
@@ -115,7 +115,7 @@ public class MainActivity extends AppCompatActivity  {
         pageImage2.setMinimumWidth(1500);
         pageImage2.setMinimumHeight(2000);
 
-        mScaleGestureDetector= new ScaleGestureDetector(this, new ScaleListener());
+        scaleGesture= new ScaleGestureDetector(this, new ScaleListener());
 
 
         Log.d(LOGNAME, "Page is: " + page);
@@ -502,10 +502,10 @@ public class MainActivity extends AppCompatActivity  {
     private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
         @Override
         public boolean onScale(ScaleGestureDetector scaleGestureDetector){
-            mScaleFactor *= scaleGestureDetector.getScaleFactor();
-            mScaleFactor = Math.max(0.1f, Math.min(mScaleFactor, 10.0f));
-            ((ImageView) pageImage).setScaleX(mScaleFactor);
-            ((ImageView) pageImage).setScaleY(mScaleFactor);
+            scaleBy *= scaleGestureDetector.getScaleFactor();
+            scaleBy = Math.max(0.1f, Math.min(scaleBy, 10.0f));
+            ((ImageView) pageImage).setScaleX(scaleBy);
+            ((ImageView) pageImage).setScaleY(scaleBy);
             Log.d(LOGNAME, "Scaling");
             return true;
         }

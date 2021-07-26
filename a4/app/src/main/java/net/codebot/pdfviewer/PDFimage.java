@@ -106,7 +106,7 @@ public class PDFimage extends ImageView {
             }
         }else{
 
-            MainActivity.mScaleGestureDetector.onTouchEvent(event);
+            MainActivity.scaleGesture.onTouchEvent(event);
        //     mScaleGestureDetector.onTouchEvent(event);
         }
         return true;
